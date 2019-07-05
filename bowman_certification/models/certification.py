@@ -102,14 +102,14 @@ class InHouseStandard(models.Model):
     _name = 'in.house.standard'
     _description = 'In House Standard'
 
-    element_id = fields.Many2one(required=True, 'certification.element', ondelete='set null', string='Element')
+    element_id = fields.Many2one('certification.element', ondelete='set null', string='Element', required=True,)
     name = fields.Char(related='element_id.name')
     
-    service_id = fields.Many2one(required=True, 'certification.service', ondelete='restrict', string='Certification Service')
-    lot_id = fields.Many2one(required=True, 'stock.production.lot', ondelete='restrict', string='Ref No.')
+    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service', required=True,)
+    lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Ref No.', required=True,)
 
-    initial_reading = fields.Char(required=True, 'Ref Initial Reading')
-    subsequent = fields.Char(required=True, 'Ref Subsequent')
+    initial_reading = fields.Char('Ref Initial Reading', required=True,)
+    subsequent = fields.Char('Ref Subsequent', required=True,)
 
     
 class CertificationLabeledValue(models.Model):
