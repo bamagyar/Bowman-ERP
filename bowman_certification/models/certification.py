@@ -18,6 +18,7 @@ class CertificationService(models.Model):
     _description = 'Certification Service'
 
     name = fields.Char('Name') # todo: add sequence to this
+    company_id = fields.Many2one('res.company', ondelete='restrict', string='Company', required=True, readonly=True)
     product_id = fields.Many2one('product.product', ondelete='restrict', string='Product', required=True, readonly=True)
     lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True, readonly=True)
     move_line_id = fields.Many2one('stock.move.line', ondelete='set null', string='Packing Operation', required=True, readonly=True)
@@ -25,12 +26,19 @@ class CertificationService(models.Model):
     state = fields.Selection([('draft', 'Draft'), ('working_on', 'Working On'), ('done', 'Done')], string='State', default='draft', required=True)
     reading_ids = fields.One2many('certification.reading', 'service_id', string='Readings', readonly=True, states={'working_on': [('readonly', False)]})
     result_ids = fields.One2many('certification.result', 'service_id', string='Results', readonly=True)
+    element_ids = fields.Many2many('certification.element', string='Selectable Elements for Current Service', readonly=True, store=True, compute='_compute_element_ids')
     element_id = fields.Many2one('certification.element', ondelete='set null', string='Element', states={'done': [('readonly', True)]})
     is_pass = fields.Boolean('Pass', states={'done': [('readonly', True)]})
     date_calibration = fields.Date('Calibration Date', states={'done': [('readonly', True)]})
     date_received = fields.Datetime('Received Date', related='move_line_id.move_id.date', states={'done': [('readonly', True)]})
     standard_ids = fields.One2many('in.house.standard', 'service_id', string='In House Standards', states={'done': [('readonly', True)]})
 
+    @api.multi
+    @api.depends('lot_id', 'lot_id.labeled_value_ids', 'lot_id.labeled_value_ids.element_id')
+    def _compute_element_ids(self):
+        for service in self:
+            service.element_ids = service.lot_id.labeled_value_ids.mapped('element_id')
+    
     def action_start(self): # this is the same button as reopen, so no need to filter
         self.write({'state': 'working_on'})
 
@@ -40,8 +48,14 @@ class CertificationService(models.Model):
 
     def action_compute_result(self):
         self.ensure_one()
+        if not self.company_id or not self.company_id.reading_uom_id:
+            raise ValidationError(_('Please define the Unit of Measure for readings in Inventory Setting before proceeding.'))
+
+        reading_uom_id = self.company_id.reading_uom_id
+        
         if self.result_ids:
             self.result_ids.sudo().unlink()
+
         unique_elements = {}
         for reading in self.reading_ids:
             if reading.element_id not in unique_elements:
@@ -52,13 +66,16 @@ class CertificationService(models.Model):
         for element in unique_elements.keys():
             if unique_elements.get(element)[1] < 5:
                 raise ValidationError(_('Element {} has less than 5 readings.'.format(element.name)))
+
         for element in unique_elements.keys():
             average = unique_elements.get(element)[0] / unique_elements.get(element)[1]
             label, diff = 0.0, 0.0
             label_value_ids = self.lot_id.labeled_value_ids.filtered(lambda lv: lv.element_id == element)
             if label_value_ids:
-                label = label_value_ids[0].value
-                diff = abs(average - label) # todo: do the uom convertion
+                label_value_id = label_value_ids[0]
+                # converted_average = reading_uom_id._compute_quantity(average, label_value_id.uom_id) 
+                label = label_value_id.uom_id._compute_quantity(label_value_id.value, reading_uom_id) 
+                diff = abs(average - label) 
             self.env['certification.result'].create({
                 'element_id': element.id,
                 'service_id': self.id,
@@ -73,29 +90,37 @@ class CertificationReading(models.Model):
     _name = 'certification.reading'
     _description = 'Certification Reading'
 
-    name = fields.Char('Name')
-    description = fields.Text('Description')
+    name = fields.Char('Description', compute='_compute_name', store=True, readonly=True)
     sequence = fields.Integer('Sequence')
-    reading = fields.Float('Reading', digits=dp.get_precision('Certification Service'), required=True, )
+    reading = fields.Float('Reading', digits=dp.get_precision('Certification Service'), required=True)
     element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element')
-    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service')
-    density = fields.Float(digits=dp.get_precision('Certification Service'), related='element_id.density', readonly=True)
+    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service', readonly=True)
+    density = fields.Float(digits=dp.get_precision('Certification Service'), related='element_id.density', readonly=True)  ## what is this?
+
+    @api.multi
+    @api.depends('reading', 'element_id', 'element_id.name')
+    def _compute_name(self):
+        for reading in self:
+            if reading.element_id:
+                reading.name = '[{}] {}'.format(reading.element_id.name, str(reading.reading))
+            else:
+                reading.name = ''
 
     
 class CertificationResult(models.Model):
     _name = 'certification.result'
     _description = 'Certification Result'
 
-    name = fields.Char('Name')
+    name = fields.Char('Name', related='element_id.name', readonly=True)
 
-    element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element')
-    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service')
+    element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element', readonly=True)
+    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service', readonly=True)
 
-    average = fields.Float('Average', digits=dp.get_precision('Certification Service'))
+    average = fields.Float('Average', digits=dp.get_precision('Certification Service'), readonly=True)
 
-    diff_from_label = fields.Float('Diff. from Label', digits=dp.get_precision('Certification Service'))
-    percent_diff_from_label = fields.Float('% Diff. from Labeled', digits=dp.get_precision('Certification Service'))
-    state = fields.Selection([('pass', 'Pass'), ('fail', 'Fail')], string='Pass/Fail')
+    diff_from_label = fields.Float('Diff. from Label', digits=dp.get_precision('Certification Service'), readonly=True)
+    percent_diff_from_label = fields.Float('% Diff. from Labeled', digits=dp.get_precision('Certification Service'), readonly=True)
+    state = fields.Selection([('pass', 'Pass'), ('fail', 'Fail')], string='Pass/Fail', readonly=True)
     
     
 class InHouseStandard(models.Model):
@@ -117,7 +142,7 @@ class CertificationLabeledValue(models.Model):
     _description ='Certification Labeled Value'
 
     name = fields.Char('Name')
-    value = fields.Float('Value', digits=dp.get_precision('Certification Service'))
-    lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial')
-    element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element')
-    uom_id = fields.Many2one('product.uom', ondelete='restrict', string='Unit of Measure')
+    value = fields.Float('Value', digits=dp.get_precision('Certification Service'), required=True)
+    lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True)
+    element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element', required=True)
+    uom_id = fields.Many2one('product.uom', ondelete='restrict', string='Unit of Measure', required=True)

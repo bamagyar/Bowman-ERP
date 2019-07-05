@@ -6,6 +6,8 @@ import odoo.addons.decimal_precision as dp
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+
+    create_service = fields.Boolean(related='location_dest_id.create_service', store=True)
     
     # when confirming a transfer that has create service enabled, make sure it has serverce serial #
     # and then upon confirmation there will be a service record created
@@ -31,16 +33,18 @@ class StockPicking(models.Model):
                 raise ValidationError(_('Certification Error. Cannot validate order if certification services have not been completed'))
 
         # check if dest location has create service
-        lines_to_check_dest = self.move_line_ids.filtered(lambda line: line.location_dest_id and line.location_dest_id.create_service and not line.service_lot_id)
+        if self.create_service:
+            lines_to_check_dest = self.move_line_ids.filtered(lambda line: line.create_service and not line.service_lot_id)
             
-        if lines_to_check_dest:
-            raise ValidationError(_('You need to supply Serviced Serial # for {}.'.format([line.product_id.display_name for line in lines_to_check_dest])))                
+            if lines_to_check_dest:
+                raise ValidationError(_('You need to supply Serviced Serial # for {}.'.format([line.product_id.display_name for line in lines_to_check_dest])))                
 
         res = super(StockPicking, self).button_validate()
 
         if res:
             return res
-        
-        self.move_line_ids.filtered(lambda line: line.location_dest_id and line.location_dest_id.create_service).generate_certification_service()
+
+        if self.create_service:
+            self.move_line_ids.filtered('create_service').generate_certification_service()
         return
 

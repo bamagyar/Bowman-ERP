@@ -8,11 +8,12 @@ class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
     service_lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Serviced Serial #')
-
+    create_service = fields.Boolean(related='location_dest_id.create_service', store=True)
 
     def _prepare_certification_service_values(self):
         self.ensure_one()
         return {
+            'company_id': self.picking_id.company_id.id,
             'product_id': self.product_id.id,
             'lot_id': self.service_lot_id.id,
             'move_line_id': self.id,
@@ -22,7 +23,7 @@ class StockMoveLine(models.Model):
     @api.multi
     def generate_certification_service(self):
         for sml in self:
-            if sml.product_id and sml.service_lot_id and sml.move_id.group_id:
+            if sml.create_service and sml.product_id and sml.service_lot_id and sml.move_id.group_id:
                 if not self.env['certification.service'].search([('move_line_id', '=', sml.id)]):
                     self.env['certification.service'].create(sml._prepare_certification_service_values())
 
