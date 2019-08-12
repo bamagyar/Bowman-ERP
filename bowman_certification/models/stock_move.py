@@ -7,17 +7,20 @@ import odoo.addons.decimal_precision as dp
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
+    name = fields.Char(related='move_id.name', readonly=True)
     service_lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Serviced Serial #')
     create_service = fields.Boolean(related='location_dest_id.create_service', store=True)
 
     def _prepare_certification_service_values(self):
         self.ensure_one()
         return {
+            'name': self.name or self.move_id.name,
             'company_id': self.picking_id.company_id.id,
             'product_id': self.product_id.id,
             'lot_id': self.service_lot_id.id,
             'move_line_id': self.id,
-            'group_id': self.move_id.group_id.id
+            'group_id': self.move_id.group_id.id,
+            'date_calibration': self.move_id.group_id.sale_id.date_calibration if self.move_id.group_id and self.move_id.group_id.sale_id else False
         }
     
     @api.multi

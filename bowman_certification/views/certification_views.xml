@@ -42,11 +42,26 @@
 		    <field name="element_id" domain="[('id', 'in', element_ids)]"/>
 		  </group>
 		  <group name="standard" string="In House Standards">
-		    <field nolabel="1" name="standard_ids"/>
+		    <!-- <field nolabel="1" name="standard_ids" widget="many2many"/> -->
+		    <!-- The pop-up window when adding an in-house standard should not have the certification service field, it confuses the end-user. -->
+		    <field nolabel="1" name="standard_ids" mode="tree,form" required="1">
+		      <form>
+		    	<group>
+		    	  <group>
+		    	    <field name="element_id"/>
+		    	    <field name="lot_id"/>
+		    	  </group>
+		    	  <group>
+		    	    <field name="initial_reading"/>
+		    	    <field name="subsequent"/>
+		    	  </group>
+		    	</group>
+		      </form>
+		    </field>
 		  </group>
 		</group>
 		<group string="Readings" name="reading">
-		  <field nolabel="1" name="reading_ids" context="{'default_service_id': active_id, 'default_element_id': element_id}" string="Readings" attrs="{'readonly': [('element_id','=', False)]}">
+		  <field nolabel="1" name="reading_ids" context="{'default_service_id': active_id, 'default_element_id': element_id}" string="Readings" attrs="{'readonly': ['|', ('element_id','=', False), ('state', '!=', 'working_on')]}">
 		    <tree string="Certification Readings" editable="top">
 		      <field name="sequence" widget="handle"/>
 		      <field name="element_id" domain="[('id', 'in', parent.element_ids)]"/>

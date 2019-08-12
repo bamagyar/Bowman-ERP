@@ -10,14 +10,15 @@ class CertificationElement(models.Model):
 
     name = fields.Char('Name', required=True)
     short_name = fields.Char('Short Name', required=True)
-    density = fields.Float('Density', digits=dp.get_precision('Certification Service'), required=True)
-
+    # density = fields.Float('Density', digits=dp.get_precision('Certification Service'), required=True)
+    # The density field in the element should be a text field, this is because they need to also type n/a for some densities.
+    density = fields.Char('Density', required=True)
 
 class CertificationService(models.Model):
     _name = 'certification.service'
     _description = 'Certification Service'
 
-    name = fields.Char('Name') # todo: add sequence to this
+    name = fields.Char('Name', readonly=True, states={'working_on': [('readonly', False)]}) # todo: add sequence to this
     company_id = fields.Many2one('res.company', ondelete='restrict', string='Company', required=True, readonly=True)
     product_id = fields.Many2one('product.product', ondelete='restrict', string='Product', required=True, readonly=True)
     lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True, readonly=True)
@@ -31,7 +32,33 @@ class CertificationService(models.Model):
     is_pass = fields.Boolean('Pass', states={'done': [('readonly', True)]})
     date_calibration = fields.Date('Calibration Date', states={'done': [('readonly', True)]})
     date_received = fields.Datetime('Received Date', related='move_line_id.move_id.date', states={'done': [('readonly', True)]})
-    standard_ids = fields.One2many('in.house.standard', 'service_id', string='In House Standards', states={'done': [('readonly', True)]})
+
+    # The in-house standard should not be a one2many, it should be a many2many field (the same standard could be used for several certification services)
+    standard_ids = fields.Many2many('in.house.standard', string='In House Standards', states={'done': [('readonly', True)]})
+
+    def _prepare_reading_values(self):
+        self.ensure_one()
+        return {
+            'service_id': self.id,
+            'element_id': self.element_id.id,
+            'reading': 0.0,
+        }
+
+    def required_reading_count(self):
+        return 5
+
+    @api.multi
+    def write(self, vals):
+        res = super(CertificationService, self).write(vals)
+        for service in self:
+            if not service.standard_ids:
+                raise ValidationError(_('Must have at least one In House Standard!'))
+
+            if vals.get('element_id') and service.element_id and service.element_id not in service.reading_ids.mapped('element_id'):
+                # create 5 readings
+                for i in range(service.required_reading_count()):
+                    self.env['certification.reading'].create(service._prepare_reading_values())
+        return res
 
     @api.multi
     @api.depends('lot_id', 'lot_id.labeled_value_ids', 'lot_id.labeled_value_ids.element_id')
@@ -43,7 +70,6 @@ class CertificationService(models.Model):
         self.write({'state': 'working_on'})
 
     def action_finish(self):
-        # todo: check the amount of reading
         self.filtered(lambda service: service.state == 'working_on').write({'state': 'done'})
 
     def action_compute_result(self):
@@ -64,8 +90,9 @@ class CertificationService(models.Model):
             unique_elements[reading.element_id][1] += 1
         # check reading count
         for element in unique_elements.keys():
-            if unique_elements.get(element)[1] < 5:
-                raise ValidationError(_('Element {} has less than 5 readings.'.format(element.name)))
+            required_reading_count = self.required_reading_count()
+            if unique_elements.get(element)[1] < required_reading_count:
+                raise ValidationError(_('Element {} has less than {} readings.'.format(element.name, required_reading_count)))
 
         for element in unique_elements.keys():
             average = unique_elements.get(element)[0] / unique_elements.get(element)[1]
@@ -82,7 +109,7 @@ class CertificationService(models.Model):
                 'average': average,
                 'diff_from_label': diff,
                 'percent_diff_from_label': (diff/label) * 100.0 if label else 0.0,
-                'state': 'pass' if diff < 10.0 else 'fail',
+                'state': 'pass' if diff < 4.0 else 'fail', # It appears that the threshold is 4%
             })
             
 
@@ -95,7 +122,8 @@ class CertificationReading(models.Model):
     reading = fields.Float('Reading', digits=dp.get_precision('Certification Service'), required=True)
     element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element')
     service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service', readonly=True)
-    density = fields.Float(digits=dp.get_precision('Certification Service'), related='element_id.density', readonly=True)  ## what is this?
+    # density = fields.Float(digits=dp.get_precision('Certification Service'), related='element_id.density', readonly=True)  ## what is this?
+    density = fields.Char(related='element_id.density', readonly=True)  ## what is this?
 
     @api.multi
     @api.depends('reading', 'element_id', 'element_id.name')
@@ -130,7 +158,7 @@ class InHouseStandard(models.Model):
     element_id = fields.Many2one('certification.element', ondelete='set null', string='Element', required=True,)
     name = fields.Char(related='element_id.name')
     
-    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service', required=True,)
+    # service_ids = fields.Many2Many('certification.service', ondelete='restrict', string='Certification Service', required=True,)
     lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Ref No.', required=True,)
 
     initial_reading = fields.Char('Ref Initial Reading', required=True,)
