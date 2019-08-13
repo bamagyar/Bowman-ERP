@@ -12,7 +12,7 @@
 	      </xpath>
 
 
-	      <xpath expr="//form[1]/sheet[1]/notebook[1]/page[1]/field[@name='move_line_ids']/tree[1]/field[@name='product_id']" position="after">
+	      <xpath expr="//form[1]/sheet[1]/notebook[1]/page[1]/field[@name='move_line_ids_without_package']/tree[1]/field[@name='product_id']" position="after">
 		<field name="create_service" invisible="1"/>
 		<field name="name" invisible="1"/>
 		<field name="service_lot_id" context="{'default_product_id': product_id, 'default_ref': name}" attrs="{'required': [('create_service', '=', True)], 'column_invisible': [('parent.create_service', '=', False)]}"/>

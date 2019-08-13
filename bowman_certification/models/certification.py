@@ -173,4 +173,4 @@ class CertificationLabeledValue(models.Model):
     value = fields.Float('Value', digits=dp.get_precision('Certification Service'), required=True)
     lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True)
     element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element', required=True)
-    uom_id = fields.Many2one('product.uom', ondelete='restrict', string='Unit of Measure', required=True)
+    uom_id = fields.Many2one('uom.uom', ondelete='restrict', string='Unit of Measure', required=True)
