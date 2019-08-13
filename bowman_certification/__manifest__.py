@@ -13,6 +13,7 @@
         'security/ir.model.access.csv',
         'data/data.xml',
         'views/res_config_settings_views.xml',
+        'views/sale_order_views.xml',
         'views/stock_location_views.xml',
         'views/stock_production_views.xml',
         'views/stock_move_views.xml',
