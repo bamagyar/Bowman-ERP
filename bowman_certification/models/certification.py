@@ -72,7 +72,7 @@ class CertificationService(models.Model):
         for cert in self:
             if not cert.reading_ids:
                 # generate readings again if not already did in create
-                cert.generate_readings(cert.lot_id.element_ids, cert.required_reading_count())
+                cert.generate_readings(cert.element_ids, cert.required_reading_count())
 
     def action_finish(self):
         self.filtered(lambda service: service.state == 'working_on').write({'state': 'done'})

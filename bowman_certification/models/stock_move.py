@@ -30,7 +30,7 @@ class StockMoveLine(models.Model):
                 if not self.env['certification.service'].search([('move_line_id', '=', sml.id)]):
                     service = self.env['certification.service'].create(sml._prepare_certification_service_values())
                     # auto create reading
-                    service.generate_readings(service.lot_id.element_ids, service.required_reading_count())
+                    service.generate_readings(service.element_ids, service.required_reading_count())
                         
 
     @api.multi
