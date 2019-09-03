@@ -48,9 +48,10 @@ class CertificationService(models.Model):
         return 5
 
     def generate_readings(self, elements, reading_count):
+        self.ensure_one()
         for element in elements:
             for i in range(reading_count):
-                self.env['certification.reading'].create(service._prepare_reading_values(element))
+                self.env['certification.reading'].create(self._prepare_reading_values(element))
 
     @api.multi
     def write(self, vals):
