@@ -28,7 +28,10 @@ class StockMoveLine(models.Model):
         for sml in self:
             if sml.create_service and sml.product_id and sml.service_lot_id and sml.move_id.group_id:
                 if not self.env['certification.service'].search([('move_line_id', '=', sml.id)]):
-                    self.env['certification.service'].create(sml._prepare_certification_service_values())
+                    service = self.env['certification.service'].create(sml._prepare_certification_service_values())
+                    # auto create reading
+                    service.generate_readings(service.service_lot_id.element_ids, service.required_reading_count())
+                        
 
     @api.multi
     def check_certification_services_done(self):

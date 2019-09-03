@@ -36,16 +36,21 @@ class CertificationService(models.Model):
     # The in-house standard should not be a one2many, it should be a many2many field (the same standard could be used for several certification services)
     standard_ids = fields.Many2many('in.house.standard', string='In House Standards', states={'done': [('readonly', True)]})
 
-    def _prepare_reading_values(self):
+    def _prepare_reading_values(self, element):
         self.ensure_one()
         return {
             'service_id': self.id,
-            'element_id': self.element_id.id,
+            'element_id': element.id,
             'reading': 0.0,
         }
 
     def required_reading_count(self):
         return 5
+
+    def generate_readings(self, elements, reading_count):
+        for element in elements:
+            for i in range(reading_count):
+                self.env['certification.reading'].create(service._prepare_reading_values(element))
 
     @api.multi
     def write(self, vals):
@@ -54,10 +59,6 @@ class CertificationService(models.Model):
             if not service.standard_ids:
                 raise ValidationError(_('Must have at least one In House Standard!'))
 
-            if vals.get('element_id') and service.element_id and service.element_id not in service.reading_ids.mapped('element_id'):
-                # create 5 readings
-                for i in range(service.required_reading_count()):
-                    self.env['certification.reading'].create(service._prepare_reading_values())
         return res
 
     @api.multi
@@ -68,6 +69,10 @@ class CertificationService(models.Model):
     
     def action_start(self): # this is the same button as reopen, so no need to filter
         self.write({'state': 'working_on'})
+        for cert in self:
+            if not cert.reading_ids:
+                # generate readings again if not already did in create
+                cert.generate_readings(cert.service_lot_id.element_ids, cert.required_reading_count())
 
     def action_finish(self):
         self.filtered(lambda service: service.state == 'working_on').write({'state': 'done'})
