@@ -19,7 +19,7 @@ class StockMoveLine(models.Model):
             values = ' - '.join([' '.join(label.element_id.name, label.value, label.uom_id.name) for label in self.service_lot_id.labeled_value_ids])
             manufacturer = self.service_lot_id.manufacturer_id.name if self.service_lot_id.manufacturer_id else ''
             name = '{} {} {}'.format(serial_number, values, manufacturer)
-            self.servie_lot_id.ref = name
+            self.service_lot_id.ref = name
         return {
             'name': name,
             'company_id': self.picking_id.company_id.id,
