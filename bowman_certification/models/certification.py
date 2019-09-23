@@ -176,7 +176,20 @@ class CertificationLabeledValue(models.Model):
     _description ='Certification Labeled Value'
 
     name = fields.Char('Name')
-    value = fields.Float('Value', digits=dp.get_precision('Certification Service'), required=True)
+    
     lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True)
     element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element', required=True)
+    
+    value = fields.Float('Value', digits=dp.get_precision('Certification Service'), required=True)
     uom_id = fields.Many2one('uom.uom', ondelete='restrict', string='Unit of Measure', required=True)
+
+    second_value = fields.Float('Second Value', digits=dp.get_precision('Certification Service'))
+    second_uom_id = fields.Many2one('uom.uom', ondelete='restrict', string='Second Unit of Measure')
+
+    
+class CertificationManufacturer(models.Model):
+    _name = 'certification.manufacturer'
+    _description = 'Certification Manufacturer'
+
+    name = fields.Char('Name', required=True)
+

@@ -13,8 +13,15 @@ class StockMoveLine(models.Model):
 
     def _prepare_certification_service_values(self):
         self.ensure_one()
+        name = self.name or self.move_id.name
+        if self.service_lot_id:
+            serial_number = self.service_lot_id.name
+            values = ' - '.join([' '.join(label.element_id.name, label.value, label.uom_id.name) for label in self.service_lot_id.labeled_value_ids])
+            manufacturer = self.service_lot_id.manufacturer_id.name if self.service_lot_id.manufacturer_id else ''
+            name = '{} {} {}'.format(serial_number, values, manufacturer)
+            self.servie_lot_id.ref = name
         return {
-            'name': self.name or self.move_id.name,
+            'name': name,
             'company_id': self.picking_id.company_id.id,
             'product_id': self.product_id.id,
             'lot_id': self.service_lot_id.id,
