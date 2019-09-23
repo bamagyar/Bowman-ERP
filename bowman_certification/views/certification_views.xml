@@ -100,10 +100,10 @@
 	  <field name="product_id"/>
 	  <field name="lot_id"/>
 	  <field name="group_id"/>
+	  <field name="state"/>
 	</tree>
       </field>
     </record>
-
     
     <record model="ir.ui.view" id="view_certification_service_kanban">
       <field name="name">certification.service.kanban</field>
@@ -212,12 +212,12 @@
     </record>
 
 
-    <record id="action_certification_service_tree" model="ir.actions.act_window">
-      <field name="name">Certification Service</field>
-      <field name="res_model">certification.service</field>
-      <field name="view_mode">tree,form,kanban</field>
-      <!-- <field name="search_view_id" ref="view_certification_service_search"/> -->
-    </record>
+    <!-- <record id="action_certification_service_tree" model="ir.actions.act_window"> -->
+    <!--   <field name="name">Certification Service</field> -->
+    <!--   <field name="res_model">certification.service</field> -->
+    <!--   <field name="view_mode">tree,form</field> -->
+    <!--   <!-\- <field name="search_view_id" ref="view_certification_service_search"/> -\-> -->
+    <!-- </record> -->
 
 
     <record id="action_certification_reading_tree" model="ir.actions.act_window">
@@ -254,7 +254,7 @@
 
     <!-- Add menu items -->
     <menuitem id="menu_certification_service_app" name="Certification Service" action="action_certification_service_kanban" web_icon="fa fa-info,#2ecc71,#606060" sequence="17" active="1"/>
-    <menuitem id="menu_certification_service" name="Certification Service" action="action_certification_service_tree" parent="bowman_certification.menu_certification_service_app" sequence="18" active="1"/>
+    <menuitem id="menu_certification_service" name="Certification Service" action="action_certification_service_kanban" parent="bowman_certification.menu_certification_service_app" sequence="18" active="1"/>
 
     <menuitem id="menu_certification_reading" name="Readings" action="action_certification_reading_tree" parent="bowman_certification.menu_certification_service_app" sequence="19" active="1"/>
 

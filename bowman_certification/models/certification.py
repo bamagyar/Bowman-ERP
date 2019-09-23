@@ -87,7 +87,7 @@ class CertificationService(models.Model):
         
         if self.result_ids:
             self.result_ids.sudo().unlink()
-
+            
         unique_elements = {}
         for reading in self.reading_ids:
             if reading.element_id not in unique_elements:
