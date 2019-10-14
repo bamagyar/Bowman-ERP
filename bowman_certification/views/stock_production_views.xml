@@ -23,6 +23,7 @@
 		      </div>
 		      <group>
 			<group>
+			  <field name="sequence"/>
 			  <field name="element_id" can_create="true" can_write="true" modifiers="{}"/>
 			  <field name="uom_id"/>
 			  <field name="second_value"/>
@@ -47,9 +48,12 @@
 	      <xpath expr="//field[@name='ref']" position="after">
 		<field name="labeled_value_ids">
 		  <tree string="Certification Labeled Values" editable="top">
+		    <field name="sequence"/>
 		    <field name="element_id" can_create="true" can_write="true"/>
 		    <field name="value"/>
 		    <field name="uom_id"/>
+		    <field name="second_value"/>
+		    <field name="second_uom_id"/>
 		  </tree>
 		  <form>
 		    <sheet string="Certification Labeled Values">
@@ -60,6 +64,7 @@
 		      </div>
 		      <group>
 			<group>
+			  <field name="sequence"/>
 			  <field name="element_id" can_create="true" can_write="true" modifiers="{}"/>
 			  <field name="uom_id"/>
 			  <field name="second_value"/>

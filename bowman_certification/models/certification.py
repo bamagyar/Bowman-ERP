@@ -2,6 +2,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import odoo.addons.decimal_precision as dp
+from odoo.tools.float_utils import float_round
 
 
 class CertificationElement(models.Model):
@@ -101,21 +102,26 @@ class CertificationService(models.Model):
                 raise ValidationError(_('Element {} has less than {} readings.'.format(element.name, required_reading_count)))
 
         for element in unique_elements.keys():
+            sequence = 0
             average = unique_elements.get(element)[0] / unique_elements.get(element)[1]
             label, diff = 0.0, 0.0
             label_value_ids = self.lot_id.labeled_value_ids.filtered(lambda lv: lv.element_id == element)
             if label_value_ids:
                 label_value_id = label_value_ids[0]
+                sequence = label_value_id.sequence
                 # converted_average = reading_uom_id._compute_quantity(average, label_value_id.uom_id) 
-                label = label_value_id.uom_id._compute_quantity(label_value_id.value, reading_uom_id) 
-                diff = abs(average - label) 
+                label = label_value_id.uom_id._compute_quantity(label_value_id.value, reading_uom_id, round=False)
+                diff = abs(average - label)
+
+            percent_diff_from_label = (diff/label) * 100.0 if label else 0.0
             self.env['certification.result'].create({
+                'sequence': sequence,
                 'element_id': element.id,
                 'service_id': self.id,
                 'average': average,
                 'diff_from_label': diff,
-                'percent_diff_from_label': (diff/label) * 100.0 if label else 0.0,
-                'state': 'pass' if diff < 4.0 else 'fail', # It appears that the threshold is 4%
+                'percent_diff_from_label': percent_diff_from_label,
+                'state': 'pass' if percent_diff_from_label < 10.0 else 'fail', # It appears that the threshold is 4%
             })
             
 
@@ -144,6 +150,9 @@ class CertificationReading(models.Model):
 class CertificationResult(models.Model):
     _name = 'certification.result'
     _description = 'Certification Result'
+    _order = 'sequence'
+
+    sequence = fields.Integer('Sequence', default=0)
 
     name = fields.Char('Name', related='element_id.name', readonly=True)
 
@@ -161,14 +170,14 @@ class InHouseStandard(models.Model):
     _name = 'in.house.standard'
     _description = 'In House Standard'
 
-    element_id = fields.Many2one('certification.element', ondelete='set null', string='Element', required=True,)
+    element_id = fields.Many2one('certification.element', ondelete='set null', string='Element', required=True)
     name = fields.Char(related='element_id.name')
     
     # service_ids = fields.Many2Many('certification.service', ondelete='restrict', string='Certification Service', required=True,)
-    lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Ref No.', required=True,)
+    lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Ref No.', required=True)
 
-    initial_reading = fields.Char('Ref Initial Reading', required=True,)
-    subsequent = fields.Char('Ref Subsequent', required=True,)
+    initial_reading = fields.Char('Ref Initial Reading', required=True)
+    subsequent = fields.Char('Ref Subsequent', required=False)
 
     
 class CertificationLabeledValue(models.Model):
@@ -176,14 +185,15 @@ class CertificationLabeledValue(models.Model):
     _description ='Certification Labeled Value'
 
     name = fields.Char('Name')
+    sequence = fields.Integer('Sequence')
     
     lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True)
     element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element', required=True)
     
-    value = fields.Float('Value', digits=dp.get_precision('Certification Service'), required=True)
+    value = fields.Float('Value', digits=dp.get_precision('Certification Labeled Value'), required=True)
     uom_id = fields.Many2one('uom.uom', ondelete='restrict', string='Unit of Measure', required=True)
 
-    second_value = fields.Float('Second Value', digits=dp.get_precision('Certification Service'))
+    second_value = fields.Float('Second Value', digits=dp.get_precision('Certification Labeled Value'))
     second_uom_id = fields.Many2one('uom.uom', ondelete='restrict', string='Second Unit of Measure')
 
     

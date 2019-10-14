@@ -78,7 +78,7 @@
 		      <field name="element_id"/>
 		      <field name="average"/>
 		      <field name="diff_from_label"/>
-		      <field name="percent_diff_from_label" widget="percentpie"/>
+		      <field name="percent_diff_from_label"/>
 		      <field name="state"/>
 		    </tree>
 		  </field>
