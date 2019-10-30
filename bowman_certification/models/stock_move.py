@@ -43,6 +43,6 @@ class StockMoveLine(models.Model):
     @api.multi
     def check_certification_services_done(self):
         service_ids = self.env['certification.service'].search([('move_line_id', 'in', self.ids)])
-        if service_ids and any(service_ids.filtered(lambda service: service.state != 'done')):
+        if service_ids and not any(service_ids.filtered(lambda service: service.state == 'done')):
             return False
         return True

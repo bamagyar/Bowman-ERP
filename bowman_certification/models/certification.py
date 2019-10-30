@@ -78,7 +78,7 @@ class CertificationService(models.Model):
 
     def action_finish(self):
         self.filtered(lambda service: service.state == 'working_on').write({'state': 'done'})
-
+        
     def action_compute_result(self):
         self.ensure_one()
         if not self.company_id or not self.company_id.reading_uom_id:
@@ -123,6 +123,9 @@ class CertificationService(models.Model):
                 'percent_diff_from_label': percent_diff_from_label,
                 'state': 'pass' if percent_diff_from_label < 10.0 else 'fail', # It appears that the threshold is 4%
             })
+
+        if self.result_ids and not self.result_ids.filtered(lambda res: res.state == 'fail'):
+            self.is_pass = True
             
 
 class CertificationReading(models.Model):
@@ -183,6 +186,7 @@ class InHouseStandard(models.Model):
 class CertificationLabeledValue(models.Model):
     _name = 'certification.labeled.value'
     _description ='Certification Labeled Value'
+    _order = 'sequence,id'
 
     name = fields.Char('Name')
     sequence = fields.Integer('Sequence')

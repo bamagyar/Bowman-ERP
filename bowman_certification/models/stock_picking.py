@@ -19,18 +19,20 @@ class StockPicking(models.Model):
 
         # check if source location has create service
         lines_to_check_src = self.move_line_ids.filtered(lambda line: line.location_id and line.location_id.create_service)
-        if lines_to_check_src:
-            # I prefer to do loops here since mapped is likely to cause perf issue
-            orig_move_ids = self.env['stock.move']
-            for line in lines_to_check_src:
-                orig_move_ids |= line.move_id.move_orig_ids
-                
+
+        at_least_one_done = False
+        for line in lines_to_check_src:
             orig_lines_to_check_src = self.env['stock.move.line']
-            for move in orig_move_ids:
+            for move in line.move_id.move_orig_ids:
                 orig_lines_to_check_src |= move.move_line_ids
-        
-            if orig_lines_to_check_src and not orig_lines_to_check_src.check_certification_services_done():
-                raise ValidationError(_('Certification Error. Cannot validate order if certification services have not been completed'))
+
+            if orig_lines_to_check_src and orig_lines_to_check_src.check_certification_services_done():
+                at_least_one_done = True
+                if line.product_uom_qty:
+                    line.qty_done = line.product_uom_qty
+
+        if lines_to_check_src and not at_least_one_done:
+            raise ValidationError(_('Certification Error. Cannot validate order if certification services have not been completed'))
 
         # check if dest location has create service
         if self.create_service:

@@ -47,7 +47,7 @@
             <field name="arch" type="xml">
 	      <xpath expr="//field[@name='ref']" position="after">
 		<field name="labeled_value_ids">
-		  <tree string="Certification Labeled Values" editable="top">
+		  <tree string="Certification Labeled Values" editable="bottom">
 		    <field name="sequence"/>
 		    <field name="element_id" can_create="true" can_write="true"/>
 		    <field name="value"/>
