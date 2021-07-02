@@ -7,11 +7,10 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-
-	      <xpath expr="//field[@name='confirmation_date']" position="after">
-		<field name="date_calibration"/>
-	      </xpath>
-
+<!--                confirmation_data is now date_order-->
+	            <xpath expr="//field[@name='date_order']" position="after">
+		            <field name="date_calibration"/>
+	            </xpath>
             </field>
         </record>
     </data>

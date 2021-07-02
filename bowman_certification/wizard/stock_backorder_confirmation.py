@@ -6,9 +6,10 @@ from odoo import api, fields, models, _
 
 class StockBackorderConfirmation(models.TransientModel):
     _inherit = 'stock.backorder.confirmation'
-    
-    @api.one
+
+    # @api.one
     def _process(self, cancel_backorder=False):
+        self.ensure_one()
         self.pick_ids.action_done()
         for picking in self.pick_ids:
             picking.move_line_ids.filtered(lambda line: line.location_dest_id and line.location_dest_id.create_service).generate_certification_service()

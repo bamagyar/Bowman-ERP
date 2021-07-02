@@ -196,6 +196,7 @@
       <field name="model">certification.service</field>
       <field name="arch" type="xml">
     	<search>
+			<field name="state"/>
     	  <group expand="0" string="Group By">
     	    <filter string="State" name="state" context="{'group_by':'state'}"/>
     	  </group>
