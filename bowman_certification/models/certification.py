@@ -10,8 +10,8 @@ class CertificationElement(models.Model):
 
     name = fields.Char('Name', required=True)
     short_name = fields.Char('Short Name', required=True)
-    # density = fields.Float('Density', digits='Certification Service', required=True) The density 
-    # field in the element should be a text field, this is because they need to also type n/a for some densities. 
+    # density = fields.Float('Density', digits='Certification Service', required=True) 
+    # The density field in the element should be a text field, this is because they need to also type n/a for some densities. 
     density = fields.Char('Density', required=True)
 
 
@@ -19,35 +19,25 @@ class CertificationService(models.Model):
     _name = 'certification.service'
     _description = 'Certification Service'
 
-    name = fields.Char('Name', readonly=True,
-                       states={'working_on': [('readonly', False)]})  # todo: add sequence to this
+    name = fields.Char('Name', readonly=True, states={'working_on': [('readonly', False)]})  # todo: add sequence to this
     company_id = fields.Many2one('res.company', ondelete='restrict', string='Company', required=True, readonly=True)
     product_id = fields.Many2one('product.product', ondelete='restrict', string='Product', required=True, readonly=True)
-    lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True,
-                             readonly=True)
+    lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Lot/Serial', required=True, readonly=True)
     # -----since required = True, by default ondelete = cascade
-    move_line_id = fields.Many2one('stock.move.line', string='Packing Operation', required=True,
-                                   readonly=True)
-    group_id = fields.Many2one('procurement.group', string='Procurement Group', readonly=True,
-                               required=True)
+    move_line_id = fields.Many2one('stock.move.line', string='Packing Operation', required=True, readonly=True)
+    group_id = fields.Many2one('procurement.group', string='Procurement Group', readonly=True, required=True)
     # -----
-    state = fields.Selection([('draft', 'Draft'), ('working_on', 'Working On'), ('done', 'Done')], string='State',
-                             default='draft', required=True)
-    reading_ids = fields.One2many('certification.reading', 'service_id', string='Readings', readonly=True,
-                                  states={'working_on': [('readonly', False)]})
+    state = fields.Selection([('draft', 'Draft'), ('working_on', 'Working On'), ('done', 'Done')], string='State', default='draft', required=True)
+    reading_ids = fields.One2many('certification.reading', 'service_id', string='Readings', readonly=True, states={'working_on': [('readonly', False)]})
     result_ids = fields.One2many('certification.result', 'service_id', string='Results', readonly=True)
-    element_ids = fields.Many2many('certification.element', string='Selectable Elements for Current Service',
-                                   readonly=True, store=True, compute='_compute_element_ids')
-    element_id = fields.Many2one('certification.element', ondelete='set null', string='Element',
-                                 states={'done': [('readonly', True)]})
+    element_ids = fields.Many2many('certification.element', string='Selectable Elements for Current Service', readonly=True, store=True, compute='_compute_element_ids')
+    element_id = fields.Many2one('certification.element', ondelete='set null', string='Element', states={'done': [('readonly', True)]})
     is_pass = fields.Boolean('Pass', states={'done': [('readonly', True)]})
     date_calibration = fields.Date('Calibration Date', states={'done': [('readonly', True)]})
-    date_received = fields.Datetime('Received Date', related='move_line_id.move_id.date',
-                                    states={'done': [('readonly', True)]})
+    date_received = fields.Datetime('Received Date', related='move_line_id.move_id.date', states={'done': [('readonly', True)]})
 
     # The in-house standard should not be a one2many, it should be a many2many field (the same standard could be used for several certification services)
-    standard_ids = fields.Many2many('in.house.standard', string='In House Standards',
-                                    states={'done': [('readonly', True)]})
+    standard_ids = fields.Many2many('in.house.standard', string='In House Standards', states={'done': [('readonly', True)]})
 
     def _prepare_reading_values(self, element):
         self.ensure_one()
@@ -94,8 +84,7 @@ class CertificationService(models.Model):
     def action_compute_result(self):
         self.ensure_one()
         if not self.company_id or not self.company_id.reading_uom_id:
-            raise ValidationError(
-                _('Please define the Unit of Measure for readings in Inventory Setting before proceeding.'))
+            raise ValidationError(_('Please define the Unit of Measure for readings in Inventory Setting before proceeding.'))
 
         reading_uom_id = self.company_id.reading_uom_id
 
@@ -112,8 +101,7 @@ class CertificationService(models.Model):
         for element in unique_elements.keys():
             required_reading_count = self.required_reading_count()
             if unique_elements.get(element)[1] < required_reading_count:
-                raise ValidationError(
-                    _('Element {} has less than {} readings.'.format(element.name, required_reading_count)))
+                raise ValidationError(_('Element {} has less than {} readings.'.format(element.name, required_reading_count)))
 
         for element in unique_elements.keys():
             sequence = 0
@@ -150,8 +138,7 @@ class CertificationReading(models.Model):
     sequence = fields.Integer('Sequence')
     reading = fields.Float('Reading', digits='Certification Service', required=True)
     element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element')
-    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service',
-                                 readonly=True)
+    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service', readonly=True)
     # density = fields.Float(digits='Certification Service', related='element_id.density', readonly=True)  ## what is this?
     density = fields.Char(related='element_id.density', readonly=True)  ## what is this?
 
@@ -175,14 +162,12 @@ class CertificationResult(models.Model):
     name = fields.Char('Name', related='element_id.name', readonly=True)
 
     element_id = fields.Many2one('certification.element', ondelete='restrict', string='Element', readonly=True)
-    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service',
-                                 readonly=True)
+    service_id = fields.Many2one('certification.service', ondelete='restrict', string='Certification Service', readonly=True)
 
     average = fields.Float('Average', digits='Certification Service', readonly=True)
 
     diff_from_label = fields.Float('Diff. from Label', digits='Certification Service', readonly=True)
-    percent_diff_from_label = fields.Float('% Diff. from Labeled', digits='Certification Service',
-                                           readonly=True)
+    percent_diff_from_label = fields.Float('% Diff. from Labeled', digits='Certification Service', readonly=True)
     state = fields.Selection([('pass', 'Pass'), ('fail', 'Fail')], string='Pass/Fail', readonly=True)
 
 
@@ -193,8 +178,7 @@ class InHouseStandard(models.Model):
     element_id = fields.Many2one('certification.element', string='Element', required=True)
     name = fields.Char(related='element_id.name')
 
-    # service_ids = fields.Many2Many('certification.service', ondelete='restrict', string='Certification Service', 
-    # required=True,) 
+    # service_ids = fields.Many2Many('certification.service', ondelete='restrict', string='Certification Service', required=True,) 
     lot_id = fields.Many2one('stock.production.lot', ondelete='restrict', string='Ref No.', required=True)
 
     initial_reading = fields.Char('Ref Initial Reading', required=True)

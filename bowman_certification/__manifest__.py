@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Bowman: Certification Migration',
+    'name': 'Bowman: Certification',
     'summary': 'Bowman (kAlpha Ray): Certification Flow',
     'description': """
     [2003850]

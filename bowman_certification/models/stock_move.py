@@ -16,8 +16,7 @@ class StockMoveLine(models.Model):
         name = self.name or self.move_id.name
         if self.service_lot_id:
             serial_number = self.service_lot_id.name
-            values = ' - '.join([' '.join([label.element_id.name, str(label.value), label.uom_id.name]) for label in
-                                 self.service_lot_id.labeled_value_ids])
+            values = ' - '.join([' '.join([label.element_id.name, str(label.value), label.uom_id.name]) for label in self.service_lot_id.labeled_value_ids])
             manufacturer = self.service_lot_id.manufacturer_id.name if self.service_lot_id.manufacturer_id else ''
             name = '{} {} / {}'.format(serial_number, values, manufacturer)
             self.service_lot_id.ref = name
