@@ -11,6 +11,7 @@
 	            </xpath>
             </field>
         </record>
+        
         <record id="view_stock_move_tree_inherit_bowman" model="ir.ui.view">
             <field name="name">view_move_tree_inherit_bowman</field>
             <field name="model">stock.move.line</field>
@@ -19,7 +20,7 @@
                 <xpath expr="//tree/field[@name='product_id']" position="after">
 		            <field name="create_service" invisible="1"/>
 		            <field name="name" invisible="1"/>
-		            <field name="service_lot_id" context="{'default_ref': name}" attrs="{'required': [('parent.create_service', '=', True)], 'column_invisible': [('parent.create_service', '=', False)]}"/>
+		            <field name="service_lot_id" context="{'default_ref': name}" attrs="{'required': [('create_service', '=', True)], 'column_invisible': [('parent.create_service', '=', False)]}"/>
                 </xpath>
             </field>
         </record>
