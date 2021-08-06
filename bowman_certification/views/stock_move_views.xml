@@ -6,7 +6,7 @@
             <field name="model">stock.picking</field>
             <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="arch" type="xml">
-	            <xpath expr="//form[1]/sheet[1]/notebook[1]/page[1]" position="inside">
+	            <xpath expr="//form/sheet/notebook/page[@name='detailed_operations_shown']/field[@name='move_line_ids_without_package']" position="before">
 		            <field name="create_service" invisible="1"/>
 	            </xpath>
             </field>
