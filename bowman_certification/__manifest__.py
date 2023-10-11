@@ -5,9 +5,9 @@
     'description': """
     [2003850]
     """,
-    'license': 'OEEL-1',
+    'license': 'OPL-1',
     'author': 'Odoo Inc',
-    'version': '0.1',
+    'version': '2.0',
     'depends': ['sale_stock', 'sale_management'],
     'data': [
         'security/ir.model.access.csv',
