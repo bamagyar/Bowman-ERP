@@ -5,9 +5,13 @@
             <field name="name">Certification Service</field>
             <field name="digits" eval="2"/>
         </record>
-	<record id="decimal_precision_certification_labeled_value" model="decimal.precision">
+	    <record id="decimal_precision_certification_labeled_value" model="decimal.precision">
             <field name="name">Certification Labeled Value</field>
             <field name="digits" eval="6"/>
+        </record>
+        <record id="reading_count" model="ir.config_parameter">
+            <field name="key">Required Reading Count</field>
+            <field name="value">5</field>
         </record>
     </data>
 </odoo>
