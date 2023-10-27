@@ -5,6 +5,7 @@
       <record id="view_picking_form_inherit_bowman" model="ir.ui.view">
           <field name="name">view_picking_form_inherit_bowman</field>
             <field name="model">stock.picking</field>
+            <field name="active">True</field>/>
             <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//form[1]/sheet[1]/notebook[1]/page[1]" position="inside">

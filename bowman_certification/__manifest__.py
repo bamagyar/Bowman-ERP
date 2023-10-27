@@ -7,7 +7,7 @@
     """,
     'license': 'OPL-1',
     'author': 'Odoo Inc',
-    'version': '2.0',
+    'version': '3.0',
     'depends': ['sale_stock', 'sale_management'],
     'data': [
         'security/ir.model.access.csv',
