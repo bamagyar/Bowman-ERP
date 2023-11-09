@@ -7,9 +7,9 @@
             <field name="active">True</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='show_update_pricelist']" position="after">
-                    <field name="date_calibration"/>
-                </xpath>
+	            <xpath expr="//field[@name='show_update_pricelist']" position="after">
+		            <field name="date_calibration"/>
+	            </xpath>
             </field>
         </record>
     </data>
