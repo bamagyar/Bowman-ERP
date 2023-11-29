@@ -211,15 +211,6 @@
       <field name="search_view_id" ref="view_certification_service_search"/>
     </record>
 
-
-    <!-- <record id="action_certification_service_tree" model="ir.actions.act_window"> -->
-    <!--   <field name="name">Certification Service</field> -->
-    <!--   <field name="res_model">certification.service</field> -->
-    <!--   <field name="view_mode">tree,form</field> -->
-    <!--   <!-\- <field name="search_view_id" ref="view_certification_service_search"/> -\-> -->
-    <!-- </record> -->
-
-
     <record id="action_certification_reading_tree" model="ir.actions.act_window">
       <field name="name">Certification Reading</field>
       <field name="res_model">certification.reading</field>
