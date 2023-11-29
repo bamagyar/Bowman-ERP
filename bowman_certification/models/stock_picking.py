@@ -37,8 +37,6 @@ class StockPicking(models.Model):
                 raise ValidationError(_(f'You need to supply Serviced Serial # for {[line.product_id.display_name for line in lines_to_check_dest]}.'))                
 
         if res := super(StockPicking, self).button_validate():
+            if self.create_service:
+                self.move_line_ids.filtered('create_service').generate_certification_service()
             return res
-
-        if self.create_service:
-            self.move_line_ids.filtered('create_service').generate_certification_service()
-        return
