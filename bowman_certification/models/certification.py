@@ -45,7 +45,7 @@ class CertificationService(models.Model):
     def generate_readings(self, elements):
         self.ensure_one()
         for element in elements:
-            reading_count = int(self.env["ir.config_parameter"].sudo().get_param('bowman_certification.reading_count'))
+            reading_count = int(self.env["ir.config_parameter"].sudo().get_param('required.reading.count', 5))
             for i in range(reading_count):
                 self.env['certification.reading'].create(self._prepare_reading_values(element))
 
@@ -88,7 +88,7 @@ class CertificationService(models.Model):
 
         # check reading count
         for element, elm_value in unique_elements.items():
-            required_reading_count = int(self.env["ir.config_parameter"].sudo().get_param('bowman_certification.reading_count'))
+            required_reading_count = int(self.env["ir.config_parameter"].sudo().get_param('required.reading.count', 5))
             if elm_value[1] < required_reading_count:
                 raise ValidationError(_(f'Element {element.name} has less than {required_reading_count} readings.'))
 

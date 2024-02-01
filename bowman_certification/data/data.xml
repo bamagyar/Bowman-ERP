@@ -10,7 +10,7 @@
             <field name="digits" eval="6"/>
         </record>
         <record id="reading_count" model="ir.config_parameter">
-            <field name="key">Required Reading Count</field>
+            <field name="key">required.reading.count</field>
             <field name="value">5</field>
         </record>
     </data>
